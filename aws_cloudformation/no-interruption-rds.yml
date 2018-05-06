@@ -1,0 +1,15 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: dummy rds stack for testing
+
+Resources:
+  MyDB:
+    Type: AWS::RDS::DBInstance
+    DeletionPolicy: Snapshot
+    Properties:
+      AllocatedStorage: '5'
+      DBInstanceClass: db.t2.micro
+      Engine: postgres
+      MasterUsername: MyName
+      MasterUserPassword: MyNewPassword
+      DBSubnetGroupName: <dbsubnetgroup>

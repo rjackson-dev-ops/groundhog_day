@@ -1,0 +1,276 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >
+  Contains configuration information to automatically build a Ubuntu Ruby Dev
+  server.
+Parameters:
+  KeyName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
+    Type: 'AWS::EC2::KeyPair::KeyName'
+    ConstraintDescription: must be the name of an existing EC2 KeyPair.
+Mappings:
+  Region2InstanceSize:
+    us-east-1:
+      Size: t1.micro
+    us-west-1:
+      Size: t1.micro
+    us-west-2:
+      Size: t1.micro
+  Region2AMI:
+    us-east-1:
+      AMI: ami-c65be9ae
+    us-west-1:
+      AMI: ami-957070d0
+    us-west-2:
+      AMI: ami-5b58266b
+  Region2AZ:
+    us-east-1:
+      AZ: us-east-1d
+    us-west-1:
+      AZ: us-west-1c
+    us-west-2:
+      AZ: us-west-2c
+Resources:
+  RootRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Principal:
+              Service:
+                - "ec2.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      Path: "/"
+      Policies:
+        -
+          PolicyName: "RootAccess"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              -
+                Effect: "Allow"
+                Action: "*"
+                Resource: "*"
+  RootInstanceProfile:
+    Type: "AWS::IAM::InstanceProfile"
+    Properties:
+      Path: "/"
+      Roles:
+        -
+          Ref: "RootRole"
+  InstanceSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: Enable SSH Access
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: 0.0.0.0/0
+  WaitHandle:
+    Type: 'AWS::CloudFormation::WaitConditionHandle'
+  WaitForInstance:
+    Type: 'AWS::CloudFormation::WaitCondition'
+    DependsOn: DevInstance
+    Properties:
+      Handle: !Ref WaitHandle
+      Timeout: '3600'
+  DevInstance:
+    Type: 'AWS::EC2::Instance'
+    Metadata:
+      'AWS::CloudFormation::Init':
+        config:
+          packages:
+            apt:
+              git: []
+              postgresql: []
+              postgresql-client: []
+              ruby1.9.1-full: []
+              ruby-bundler: []
+              rubygems1.9.1: []
+              libxslt1-dev: []
+              libxml2-dev: []
+              libsasl2-dev: []
+              libpq-dev: []
+              libgmp3-dev: []
+              sqlite3: []
+              memcached: []
+              build-essential: []
+              libsqlite3-dev: []
+              libhunspell-1.3-0: []
+              gettext: []
+              gnupg: []
+              python-boto: []
+              python-dev: []
+              python-pip: []
+              nodejs: []
+              libpq-dev: []
+          commands:
+            00-comment-rvm-key:
+              command:
+                    echo "starting rvm install - importing keys"
+              waitAfterCompletion: '0'
+              ignoreErrors: 'false'
+            01-install-rvm-keys:
+              command:
+                    curl -sSL https://rvm.io/mpapis.asc | gpg --import -
+              waitAfterCompletion: '0'
+              ignoreErrors: 'false'
+            02-install-rvm-comment:
+              command:
+                    echo "starting rvm install - rvm"
+              waitAfterCompletion: '0'
+              ignoreErrors: 'false'
+            03-install-rvm:
+              command:
+                    curl -L https://raw.githubusercontent.com/rvm/rvm/stable/binscripts/rvm-installer | bash -s stable --ruby=2.3.5
+              waitAfterCompletion: '0'
+              ignoreErrors: 'false'
+            08-echo-starting-sudo:
+              command:
+                   echo "Starting rvm sudo steps"
+              waitAfterCompletion: '0'
+              ignoreErrors: 'false'
+            09-sudo-sed:
+              command:
+                   sed -i.bak '/secure_path/d' /etc/sudoers
+              waitAfterCompletion: '0'
+              ignoreErrors: 'false'
+            10-echo-defaults-into-sudoers:
+              command:
+                    echo 'Defaults env_keep +="rvm_bin_path GEM_HOME IRBRC MY_RUBY_HOME rvm_path rvm_prefix rvm_version GEM_PATH rvmsudo_secure_path RUBY_VERSION rvm_ruby_string rvm_delete_flag"' >> /etc/sudoers
+              waitAfterCompletion: '0'
+              ignoreErrors: 'false'
+            11-echo-path-into-sudoer:
+              command:
+                    echo "Defaults secure_path=\"${PATH}\"" >> /etc/sudoers
+              waitAfterCompletion: '0'
+              ignoreErrors: 'false'
+            12-echo-newline-bashrc:
+              command:
+                    echo '\n' >> ~ubuntu/.bashrc
+              waitAfterCompletion: '0'
+              ignoreErrors: 'false'
+            13-echo-rvmsudo-bashrc:
+              command:
+                    echo "export rvmsudo_secure_path=1" >> /home/ubuntu/.bashrc
+              waitAfterCompletion: '0'
+              ignoreErrors: 'false'
+            14-usermod:
+              command:
+                    usermod -a -G rvm ubuntu
+              waitAfterCompletion: '0'
+              ignoreErrors: 'false'
+            15-echo-cli-install:
+              command:
+                    echo "about to install cli"
+              waitAfterCompletion: '0'
+              ignoreErrors: 'false'
+            16-pip-install-awscli:
+              command:
+                    pip install awscli
+              waitAfterCompletion: '0'
+              ignoreErrors: 'false'
+            17-chmod-aws:
+              command:
+                    chmod a+r /usr/local/bin/aws
+              waitAfterCompletion: '0'
+              ignoreErrors: 'false'
+            18-chmod-python27:
+              command:
+                    chmod -R a+rx /usr/local/lib/python2.7/dist-packages/*
+              waitAfterCompletion: '0'
+              ignoreErrors: 'false'
+            19-echo-newline-bashrc:
+              command:
+                    echo '\n' >> ~ubuntu/.bashrc
+              waitAfterCompletion: '0'
+              ignoreErrors: 'false'
+            21-echo-gemset-bashrc:
+              command:
+                    echo 'rvm user gemsets' >> ~ubuntu/.bashrc
+              waitAfterCompletion: '0'
+              ignoreErrors: 'false'
+            22-cd-bashrc:
+              command:
+                    echo 'cd /;cd ~/' >> ~ubuntu/.bashrc
+              waitAfterCompletion: '0'
+              ignoreErrors: 'false'
+            23-echo-rvm-default-bashrc:
+              command:
+                    echo 'rvm default 2.3.5' >> ~ubuntu/.bashrc
+              waitAfterCompletion: '0'
+              ignoreErrors: 'false'
+            24-echo-aws-region-bashrc:
+              command:
+                    echo 'export AWS_REGION=us-west-2' >> ~ubuntu/.bashrc
+              waitAfterCompletion: '0'
+              ignoreErrors: 'false'
+            25-echo-aws-region-bashrc:
+              command:
+                    echo 'export AWS_DEFAULT_REGION=us-west-2' >> ~ubuntu/.bashrc
+              waitAfterCompletion: '0'
+              ignoreErrors: 'false'
+            26-echo-region-bashrc:
+              command:
+                    echo 'export region=us-west-2'  >> ~ubuntu/.bashrc
+              waitAfterCompletion: '0'
+              ignoreErrors: 'false'
+            27-echo-bundler-bashrc:
+              command:
+                    echo 'which bundler || gem install bundler aws-sdk activesupport keystore hamburgerstore ' >> ~ubuntu/.bashrc
+              waitAfterCompletion: '0'
+              ignoreErrors: 'false'
+    Properties:
+      SecurityGroups:
+        - !Ref InstanceSecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Ref 'AWS::StackName'
+        - Key: Type
+          Value: Ubuntu-Ruby-Dev-Environment
+      AvailabilityZone: !FindInMap
+        - Region2AZ
+        - !Ref 'AWS::Region'
+        - AZ
+      ImageId: !FindInMap
+        - Region2AMI
+        - !Ref 'AWS::Region'
+        - AMI
+      InstanceType: !FindInMap
+        - Region2InstanceSize
+        - !Ref 'AWS::Region'
+        - Size
+      IamInstanceProfile: !Ref RootInstanceProfile
+      KeyName: !Ref KeyName
+      UserData:
+        "Fn::Base64": !Sub |
+              #!/bin/bash -ex
+              mkdir -p /tmp/userdata/
+              date > /tmp/userdata/starttime
+              apt-get update
+              apt-get -y install python-setuptools
+              wget -P /root https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
+              mkdir -p /root/aws-cfn-bootstrap-latest
+              tar xvfz /root/aws-cfn-bootstrap-latest.tar.gz --strip-components=1 -C /root/aws-cfn-bootstrap-latest
+              easy_install /root/aws-cfn-bootstrap-latest/
+              /usr/local/bin/cfn-init -v -s ${AWS::StackId} -r DevInstance --region ${AWS::Region}
+              /usr/local/bin/cfn-signal -e $?  -r DevInstance '${WaitHandle}'
+              date > /tmp/userdata/stoptime
+Outputs:
+  InstanceId:
+    Description: InstanceId of the newly created EC2 instance
+    Value: !Ref DevInstance
+  AZ:
+    Description: Availability Zone of the newly created EC2 instance
+    Value: !GetAtt
+      - DevInstance
+      - AvailabilityZone
+  URL:
+    Description: Public (Elastic) IP Address
+    Value: !GetAtt
+      - DevInstance
+      - PublicIp
