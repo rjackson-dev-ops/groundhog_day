@@ -29,7 +29,7 @@ git clone git@github.com:rjackson-dev-ops/dot-files.git
 I suggest you for my repo or Chris Hunt's. I forked his repo. This setup includes excellent VIM and TMUX options.
 [Chris Hunt video on VIM/Tmux](https://www.youtube.com/watch?v=9jzWDr24UHQ&list=FLIM81PEaC4wDuCmSmJSQvYg&index=1&t=1059s)
 
-## Movtivation
+## Motivation
 Recently, our [Stelligent](https://stelligent.com/) team has worked wth clients where the development environment is "locked down," and we may not have immediate access to AWS resources from our laptops.
 
 This cloudformation script will create a EC2 instance/bastion you can use as a template to create a simple development environment.
