@@ -9,7 +9,6 @@ The purpose of this repo to proovide a AWS Cloudformation template that will pro
 * Full access to all AWS resources
 
 
-
 ## Run clouldformation script to setup EC2. Which script should you use?
 Use this script: create_dev_env.yaml
 
@@ -24,13 +23,30 @@ I've left this script in the repo so you can compare the original json script to
 Additionally, this repo contains several devops scripts used for querying/updating system resources.
 
 ## Generate ssh keys
+cd ~
+mkdir -p .ssh
+cd .ssh
 ssh-keygen -f id_rsa -t rsa -N ''
+ls -alt
+chmod 400 id*
+cd ~
+echo "The new public key is:"
+cat .ssh/id_rsa.pub
+
+## Put SSH public key in Github
 
 ## (Optional) Set environment/dot-files
 git clone git@github.com:rjackson-dev-ops/dot-files.git
+cd dot-files
+./setup.sh
 
-I suggest you for my repo or Chris Hunt's. I forked his repo. This setup includes excellent VIM and TMUX options.
+I suggest you fork my repo or Chris Hunt's. I forked his repo. This setup includes excellent VIM and TMUX options.
+
 [Chris Hunt video on VIM/Tmux](https://www.youtube.com/watch?v=9jzWDr24UHQ&list=FLIM81PEaC4wDuCmSmJSQvYg&index=1&t=1059s)
+
+
+## Clone this repo and set path
+git clone git@github.com:rjackson-dev-ops/groundhog_day.git
 
 ## Motivation
 Recently, our [Stelligent](https://stelligent.com/) team has worked wth clients where the development environment is "locked down," and we may not have immediate access to AWS resources from our laptops.
