@@ -23,6 +23,9 @@ I've left this script in the repo so you can compare the original json script to
 
 Additionally, this repo contains several devops scripts used for querying/updating system resources.
 
+## Generate ssh keys
+ssh-keygen -f id_rsa -t rsa -N ''
+
 ## (Optional) Set environment/dot-files
 git clone git@github.com:rjackson-dev-ops/dot-files.git
 
