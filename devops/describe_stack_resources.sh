@@ -9,4 +9,5 @@ fi
 stack_name=$1
 
 echo "Stack Name values is $stack_name"
+set -x
 aws cloudformation describe-stack-resources --stack-name $stack_name

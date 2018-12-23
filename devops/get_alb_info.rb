@@ -26,6 +26,8 @@ puts "Load Balancer Data"
 puts "Load lablancer name:  #{load_balancer.load_balancer_name}"
 puts "Load lablancer DNS:  #{load_balancer.dns_name}"
 
+puts "Security Groups: #{load_balancer.security_groups}"
+
 resp  = client.describe_listeners({
 	load_balancer_arn: 
 		alb_arn,

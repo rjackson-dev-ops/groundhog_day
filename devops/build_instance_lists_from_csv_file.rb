@@ -26,8 +26,8 @@ require 'ipaddr'
 #   cidr: 10.22.22.0/25
 # - subnet: subnet-idfaaff
 #   cidr: 10.22.22.0/25
-# - subnet: subnet-3660401a
-# 	cidr: 10.193.185.0/24
+# - subnet: subnet-34344324
+# 	cidr: 10.22.22.0/24
 
 # The csv file should have thei ip addresses in a column called "private_ip"
 
