@@ -1,15 +1,10 @@
 # Generate Keys
 ssh-keygen -b 2048 -t rsa
+ssh-keygen -b 2048 -t rsa -f  ~/.ssh/id_rsa -q -N ""
 
 # chmod
 chmod 400 ~/.ssh/id*
 rjack_dev:~ $ ls -alt .ssh
-total 20
-drwxr-xr-x 2 ec2-user ec2-user 4096 Dec 23 13:52 .
--r-------- 1 ec2-user ec2-user 1679 Dec 23 13:52 id_rsa
--r-------- 1 ec2-user ec2-user  406 Dec 23 13:52 id_rsa.pub
-drwx------ 8 ec2-user ec2-user 4096 Dec 23 13:50 ..
--rw------- 1 ec2-user ec2-user  991 Dec 23 13:42 authorized_keys
 
 # add public key to Github rjackson-dev-ops account
 
