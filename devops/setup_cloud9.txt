@@ -14,3 +14,6 @@ mkdir projects
 cd projects
 git clone git@github.com:rjackson-dev-ops/dot-files.git
 git clone git@github.com:rjackson-dev-ops/groundhog_day.git
+
+cd dot-files.git
+./setup.sh 
