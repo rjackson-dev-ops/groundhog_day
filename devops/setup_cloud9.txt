@@ -1,12 +1,13 @@
+set -o vi
 # Generate Keys
-ssh-keygen -b 2048 -t rsa
 ssh-keygen -b 2048 -t rsa -f  ~/.ssh/id_rsa -q -N ""
 
 # chmod
 chmod 400 ~/.ssh/id*
-rjack_dev:~ $ ls -alt .ssh
+ls -alt ~/.ssh
 
 # add public key to Github rjackson-dev-ops account
+cat ~/.ssh/id_rsa.pub 
 
 # Pull down setup scripts
 cd ~
