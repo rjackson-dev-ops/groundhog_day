@@ -227,7 +227,7 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL:
-        Fn::Sub: https://${QSS3BucketName}.s3.amazonaws.com/${QSS3KeyPrefix}submodules/quickstart-aws-vpc/templates/aws-vpc.template
+        Fn::Sub: https://${QSS3BucketName}.s3.amazonaws.com/${QSS3KeyPrefix}aws-vpc.yml
       Parameters:
         AvailabilityZones:
           Fn::Join:
@@ -251,7 +251,7 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL:
-        Fn::Sub: https://${QSS3BucketName}.s3.amazonaws.com/${QSS3KeyPrefix}submodules/quickstart-linux-bastion/templates/linux-bastion.template
+        Fn::Sub: https://${QSS3BucketName}.s3.amazonaws.com/${QSS3KeyPrefix}linux-bastion.yml
       Parameters:
         BastionAMIOS:
           Ref: BastionAMIOS
@@ -282,7 +282,7 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL:
-        Fn::Sub: https://${QSS3BucketName}.s3.amazonaws.com/${QSS3KeyPrefix}templates/workload-yaml.template
+        Fn::Sub: https://${QSS3BucketName}.s3.amazonaws.com/workload-yaml.yml
       Parameters:
         WorkloadInstanceType:
           Ref: WorkloadInstanceType
