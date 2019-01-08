@@ -14,9 +14,12 @@ loop do
   end
   puts "The region chosen is #{selectedRegion}"
 
-  cmd = "aws configure set region #{selectedRegion}"
+  cmd = %{
+aws configure set region #{selectedRegion}
+export region=#{selectedRegion}
+export AWS_REGION=#{selectedRegion}
+}
 
-  puts "Updating config file = #{cmd}"
-  %x[#{cmd}]
+  puts "#{cmd}"
 
 end
