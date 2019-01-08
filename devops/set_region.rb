@@ -18,6 +18,7 @@ loop do
 aws configure set region #{selectedRegion}
 export region=#{selectedRegion}
 export AWS_REGION=#{selectedRegion}
+export REGION=#{selectedRegion}
 }
 
   puts "#{cmd}"
