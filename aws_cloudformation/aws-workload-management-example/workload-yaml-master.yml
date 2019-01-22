@@ -286,7 +286,7 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL:
-        Fn::Sub: https://${QSS3BucketName}.s3.amazonaws.com/workload-yaml.yml
+        Fn::Sub: https://${QSS3BucketName}.s3.amazonaws.com/${QSS3KeyPrefix}workload-yaml.yml
       Parameters:
         WorkloadInstanceType:
           Ref: WorkloadInstanceType
