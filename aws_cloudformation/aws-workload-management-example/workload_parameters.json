@@ -1,0 +1,74 @@
+[
+  {
+    "ParameterKey": "AvailabilityZones",
+    "ParameterValue": "us-west-1a,us-west-1c"
+  }, 
+  {
+    "ParameterKey": "BastionAMIOS",
+    "ParameterValue": "Amazon-Linux-HVM"
+  }, 
+  {
+    "ParameterKey": "BastionInstanceType",
+    "ParameterValue": "t2.micro"
+  }, 
+  {
+    "ParameterKey": "KeyPairName",
+    "ParameterValue": "rjackson-stelligent-west"
+  }, 
+  {
+    "ParameterKey": "OperatorEmail",
+    "ParameterValue": "robert.jackson@stelligent.com"
+  }, 
+  {
+    "ParameterKey": "PrivateSubnet1CIDR",
+    "ParameterValue": "10.102.0.0/19"
+  }, 
+  {
+    "ParameterKey": "PrivateSubnet2CIDR",
+    "ParameterValue": "10.102.32.0/19"
+  }, 
+  {
+    "ParameterKey": "PublicSubnet1CIDR",
+    "ParameterValue": "10.102.128.0/20"
+  }, 
+  {
+    "ParameterKey": "PublicSubnet2CIDR",
+    "ParameterValue": "10.102.144.0/20"
+  }, 
+  {
+    "ParameterKey": "QSS3BucketName",
+    "ParameterValue": "rjackson-misc"
+  }, 
+  {
+    "ParameterKey": "QSS3KeyPrefix",
+    "ParameterValue": "work-load-mangement-templates/"
+  }, 
+  {
+    "ParameterKey": "RemoteAccessCIDR",
+    "ParameterValue": "0.0.0.0/0"
+  }, 
+  {
+    "ParameterKey": "S3BucketName",
+    "ParameterValue": "rjackson-work-load-data"
+  }, 
+  {
+    "ParameterKey": "VPCCIDR",
+    "ParameterValue": "10.102.0.0/16"
+  }, 
+  {
+    "ParameterKey": "WorkloadInstanceType",
+    "ParameterValue": "t2.nano"
+  }, 
+  {
+    "ParameterKey": "WorkloadNodesDesiredCapacity",
+    "ParameterValue": "2"
+  }, 
+  {
+    "ParameterKey": "WorkloadNodesMaxSize",
+    "ParameterValue": "2"
+  }, 
+  {
+    "ParameterKey": "WorkloadNodesMinSize",
+    "ParameterValue": "2"
+  } 
+]
