@@ -15,6 +15,7 @@ loop do
   puts "The region chosen is #{selectedRegion}"
 
   cmd = %{
+aws configure set region #{selectedRegion}
 aws configure --profile stel set region #{selectedRegion}
 aws configure --profile sfh set region #{selectedRegion}
 export region=#{selectedRegion}

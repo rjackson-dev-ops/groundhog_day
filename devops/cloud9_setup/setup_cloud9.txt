@@ -1,0 +1,50 @@
+set -o vi
+# Generate Keys
+ssh-keygen -b 2048 -t rsa -f  ~/.ssh/id_rsa -q -N ""
+# chmod
+chmod 400 ~/.ssh/id*
+ls -alt ~/.ssh
+# add public key to Github rjackson-dev-ops account
+cat ~/.ssh/id_rsa.pub
+
+# Pull down setup scripts
+cd ~
+mkdir projects
+cd projects
+git clone git@github.com:rjackson-dev-ops/dot-files.git
+
+git clone git@github.com:rjackson-dev-ops/groundhog_day.git
+cd dot-files
+./setup.sh
+
+sudo pip install jmespath-terminal
+complete -C '/usr/local/bin/aws_completer' aws
+
+Notes
+
+Installing cloud9
+
+- Look for subnet
+- awve ../get_instances.sh | less
+
+Run Create
+
+awve create_cloud9_environment.sh subnetxxxxx
+
+Get Status
+
+awv cloud9 describe-environment-status --environment-id
+
+list environments
+awv cloud9 list-environments
+
+awv cloud9 describe-environments --environment-ids
+
+Delete Environment
+
+- Show cloud9 instances and get environment ID
+awve get_instances.sh  | less
+
+awv cloud9 delete-environment --environment-id
+
+
