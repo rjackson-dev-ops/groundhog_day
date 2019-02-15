@@ -53,5 +53,5 @@ Recently, our [Stelligent](https://stelligent.com/) team has worked wth clients 
 
 This cloudformation script will create a EC2 instance/bastion you can use as a template to create a simple development environment.
 
-In some situations, you made need to recreate this bastion each periodically for security; hence the reason I named this repo [Groundhog Day](https://www.imdb.com/title/tt0107048/).
+In some situations, you made need to recreate this bastion periodically for security; hence the reason I named this repo [Groundhog Day](https://www.imdb.com/title/tt0107048/).
 
