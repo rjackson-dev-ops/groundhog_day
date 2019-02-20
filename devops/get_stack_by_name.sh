@@ -13,5 +13,5 @@ echo "Stack Name query values are $stack_name, $stack_name_upper"
 
 set -x
 aws cloudformation describe-stacks  \
-  --query "Stacks[?contains(StackName, '${stack_name}') || contains(StackName, '${stack_name_upper}')].[CreationTime, StackName, StackStatus] " \
+  --query "Stacks[?contains(StackName, '${stack_name}') || contains(StackName, '${stack_name_upper}')].[CreationTime, StackName, StackStatus,StackId] " \
   --output=text | sort
