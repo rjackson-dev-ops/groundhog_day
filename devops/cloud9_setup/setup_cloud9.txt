@@ -1,7 +1,7 @@
 set -o vi
 
 # Generate Keys
-ssh-keygen -b 2048 -t rsa -C "robert.jackson@stelligent.com" -f  ~/.ssh/stelligent_cloud9 -q -N ""
+ssh-keygen -b 2048 -t rsa -f  ~/.ssh/id_rsa -q -N ""
 # chmod
 chmod 400 ~/.ssh/id*
 ls -alt ~/.ssh
@@ -18,8 +18,11 @@ cd projects
 git clone git@github.com:rjackson-dev-ops/dot-files.git
 
 git clone git@github.com:rjackson-dev-ops/groundhog_day.git
+
+which bundler || gem install bundler aws-sdk activesupport keystore crossing hamburgerstore
+
 cd dot-files
-./setup.sh
+# ./setup.sh
 
 Notes
 
