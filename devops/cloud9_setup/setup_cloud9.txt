@@ -1,11 +1,15 @@
 set -o vi
+
 # Generate Keys
-ssh-keygen -b 2048 -t rsa -f  ~/.ssh/id_rsa -q -N ""
+ssh-keygen -b 2048 -t rsa -C "robert.jackson@stelligent.com" -f  ~/.ssh/stelligent_cloud9 -q -N ""
 # chmod
 chmod 400 ~/.ssh/id*
 ls -alt ~/.ssh
 # add public key to Github rjackson-dev-ops account
 cat ~/.ssh/id_rsa.pub
+
+sudo pip install jmespath-terminal
+complete -C '/usr/local/bin/aws_completer' aws
 
 # Pull down setup scripts
 cd ~
@@ -16,9 +20,6 @@ git clone git@github.com:rjackson-dev-ops/dot-files.git
 git clone git@github.com:rjackson-dev-ops/groundhog_day.git
 cd dot-files
 ./setup.sh
-
-sudo pip install jmespath-terminal
-complete -C '/usr/local/bin/aws_completer' aws
 
 Notes
 
