@@ -19,6 +19,8 @@ git clone git@github.com:rjackson-dev-ops/dot-files.git
 
 git clone git@github.com:rjackson-dev-ops/groundhog_day.git
 
+export PATH=~/projects/groundhog_day/devops/:PATH
+
 gem install bundler aws-sdk activesupport keystore crossing hamburgerstore
 
 cd dot-files
