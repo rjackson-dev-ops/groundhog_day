@@ -14,7 +14,9 @@ ls -alt ~/.ssh
 cat ~/.ssh/id_rsa.pub
 
 sudo pip install jmespath-terminal
+sudo pip install aws-shell
 complete -C '/usr/local/bin/aws_completer' aws
+
 
 # Pull down setup scripts
 cd ~
