@@ -19,7 +19,7 @@ git clone git@github.com:rjackson-dev-ops/dot-files.git
 
 git clone git@github.com:rjackson-dev-ops/groundhog_day.git
 
-which bundler || gem install bundler aws-sdk activesupport keystore crossing hamburgerstore
+gem install bundler aws-sdk activesupport keystore crossing hamburgerstore
 
 cd dot-files
 # ./setup.sh
