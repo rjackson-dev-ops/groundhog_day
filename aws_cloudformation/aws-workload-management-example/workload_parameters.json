@@ -1,7 +1,7 @@
 [
   {
     "ParameterKey": "AvailabilityZones",
-    "ParameterValue": "us-west-1a,us-west-1c"
+    "ParameterValue": "us-west-2a,us-west-2b"
   }, 
   {
     "ParameterKey": "BastionAMIOS",
