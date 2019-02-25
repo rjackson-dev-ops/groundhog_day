@@ -16,12 +16,12 @@ loop do
 
   cmd = %{
 aws configure set region #{selectedRegion}
-aws configure --profile stel set region #{selectedRegion}
-aws configure --profile sfh set region #{selectedRegion}
 export region=#{selectedRegion}
 export AWS_REGION=#{selectedRegion}
 export AWS_DEFAULT_REGION=#{selectedRegion}
 export REGION=#{selectedRegion}
+aws configure --profile stel set region #{selectedRegion}
+aws configure --profile sfh set region #{selectedRegion}
 }
 
   puts "#{cmd}"
