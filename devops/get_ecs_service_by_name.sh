@@ -6,7 +6,7 @@ if [ $# -lt 1 ]; then
    exit 1
 fi
 
-cluster_name=`aws ecs list-clusters --query "clusterArns[?contains(@, 'VIS-INTERNAL')]" --output=text`
+cluster_name=`aws ecs list-clusters --query "clusterArns[?contains(@, 'NONPROD-INTERNAL')]" --output=text`
 
 service_name=$1
 service_name_upper=`echo $service_name | awk '{print toupper($0)}'`
