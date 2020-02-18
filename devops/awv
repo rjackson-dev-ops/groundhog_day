@@ -1,2 +1,2 @@
 #!/bin/bash
-exec aws-vault exec "${AWS_DEFAULT_PROFILE:-stel}" -- /Users/rjackson/.local/bin/aws "$@"
+exec aws-vault exec "${AWS_DEFAULT_PROFILE:-stel}" -- /home/rjackson/.local/bin/aws "$@"
