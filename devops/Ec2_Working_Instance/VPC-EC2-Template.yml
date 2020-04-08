@@ -323,10 +323,10 @@ Resources:
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource Ec2Instance --region ${AWS::Region}
     CreationPolicy:
       ResourceSignal:
-        Timeout: PT5M
+        Timeout: PT20M
 Outputs:
   EC2ServerInstanceIP:
     Description: IP Address of EC2ServerInstance
     Value: !GetAtt 
       - EC2ServerInstance
-      - PublicI
+      - PublicIp
