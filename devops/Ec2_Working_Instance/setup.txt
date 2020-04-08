@@ -1,0 +1,7 @@
+Generate Keypair
+
+ssh-keygen -b 2048 -t rsa -C "robert.jackson@stelligent.com" -f  ~/.ssh/rjack-ec2 -q -N ""
+
+chmod 400 ~/.ssh/rja*
+
+aws ec2 import-key-pair --key-name "rjack-ec2" --public-key-material file://~/.ssh/rjack-ec2.pub
