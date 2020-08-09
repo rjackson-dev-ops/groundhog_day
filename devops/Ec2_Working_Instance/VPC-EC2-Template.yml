@@ -292,7 +292,7 @@ Resources:
             4-permissionsaws:
               command: 'chown ec2-user:ec2-user /home/ec2-user/.aws/ -R'
             5-permissionsLabFiles:
-              command: chmod 755  /home/ec2-user/DynamoDB-B2P-master -R9
+              command: 'chmod 755  /home/ec2-user/DynamoDB-B2P-master -R'
     Properties:
       InstanceType: !Ref InstanceType
       ImageId: !FindInMap 
@@ -315,6 +315,7 @@ Resources:
           #!/bin/bash -xe
           yum update -y aws-cfn-bootstrap
           yum install -y gcc
+          pip install --upgrade setuptools
           pip install boto3
           pip install Faker
           pip install tqdm
