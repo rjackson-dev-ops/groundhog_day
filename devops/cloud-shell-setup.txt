@@ -1,0 +1,24 @@
+set -o vi
+
+# Generate Keys
+ssh-keygen -b 2048 -t rsa -f  ~/.ssh/id_rsa -q -N ""
+# chmod
+chmod 400 ~/.ssh/id*
+ls -alt ~/.ssh
+# add public key to Github rjackson-dev-ops account
+cat ~/.ssh/id_rsa.pub
+
+# Pull down setup scripts
+cd ~
+mkdir projects
+cd projects
+git clone git@github.com:rjackson-dev-ops/dot-files.git
+
+git clone git@github.com:rjackson-dev-ops/groundhog_day.git
+
+gem install bundler aws-sdk activesupport keystore crossing hamburgerstore highline
+
+cd
+
+cd dot-files
+./setup.sh
