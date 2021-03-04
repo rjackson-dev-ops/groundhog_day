@@ -1,0 +1,230 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+# create 2 vpc (ConsumerVpc wih public webserver, ConsumerVpc with public & private ec2). Go to endpoint, and get private IP of endpoint eni. Now you can access ec2 from ConsumerVpc using this privateIP
+# !important => we intentionally made both ec2 & nlb public, but they can also be private, and still be accessible through privatelink
+# !important => if you want to enable `PrivateDnsEnabled: true`, your vpc should support private dns
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      -
+        Label:
+          default: "EC2 Configuration"
+        Parameters:
+          - InstanceName
+          - InstanceType
+          - KeyName
+          - LatestAmiId
+          - ImageID
+          - AvailabilityZones
+
+Parameters:
+  InstanceProfile:
+    Default: ec2 instance profile
+    Type: String
+  KeyName:
+    Default: Name of an existing EC2 KeyPair to enable SSH access to the instance
+    Type: 'AWS::EC2::KeyPair::KeyName'
+    ConstraintDescription: must be the name of an existing EC2 KeyPair.
+  LatestAmiId:
+    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+    Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
+  InstanceType:
+    Description: AMZ 2 EC2 Instance Type
+    Type: String
+    Default: t2.large
+    AllowedValues:
+      - t2.nano
+      - t2.micro
+      - t2.small
+      - t2.medium
+      - t2.large
+      - m4.large
+      - m4.xlarge
+      - m4.2xlarge
+      - m4.4xlarge
+      - c4.large
+      - c4.xlarge
+      - c4.2xlarge
+      - c4.4xlarge
+
+  AvailabilityZones:
+    Description: 'List of Availability Zones to use for the subnets in the VPC.'
+    Type: List<AWS::EC2::AvailabilityZone::Name>
+
+Resources:
+  ConsumerVpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.200.0.0/16
+      EnableDnsHostnames: 'true'
+      EnableDnsSupport: 'true'
+      Tags:
+        - Key: Name
+          Value:  !Sub ${AWS::StackName}-ConsumerVpc
+
+  ConsumerVpcPublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref ConsumerVpc
+      AvailabilityZone: !Select [1, !Ref AvailabilityZones]
+      CidrBlock: 10.200.1.0/24
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-ConsumerVpc-PublicSubnet
+
+  ConsumerVpcPrivateSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref ConsumerVpc
+      AvailabilityZone: !Select [1, !Ref AvailabilityZones]
+      CidrBlock: 10.200.2.0/24
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-ConsumerVpc-PrivateSubnet
+        
+  ConsumerVpcPublicRT:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref ConsumerVpc
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-ConsumerVpc-PublicRT
+
+  ConsumerVpcPrivateRT:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref ConsumerVpc
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-ConsumerVpc-PrivateRT
+          
+  ConsumerVpcInternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: ConsumerVpcInternetGateway
+
+  ConsumerVpcIgwAttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref ConsumerVpc
+      InternetGatewayId: !Ref ConsumerVpcInternetGateway
+
+  ConsumerVpcPublicRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      RouteTableId: !Ref ConsumerVpcPublicRT
+      GatewayId: !Ref ConsumerVpcInternetGateway
+
+  ConsumerVpcPublicSubnetRtAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref ConsumerVpcPublicSubnet
+      RouteTableId: !Ref ConsumerVpcPublicRT
+
+  ConsumerVpcPrivateSubnetRtAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref ConsumerVpcPrivateSubnet
+      RouteTableId: !Ref ConsumerVpcPrivateRT
+      
+  ConsumerVpcPrivateSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable SSH access from public SG
+      VpcId: !Ref ConsumerVpc
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-ConsumerVpc-PrivateSG
+
+  ConsumerVpcNatEip:
+    Type: "AWS::EC2::EIP"
+    Properties:
+      Domain: vpc
+
+  ConsumerVpcNatGateway:
+    DependsOn: ConsumerVpcIgwAttachGateway
+    Type: "AWS::EC2::NatGateway"
+    Properties:
+      AllocationId:
+        Fn::GetAtt:
+          - ConsumerVpcNatEip
+          - AllocationId
+      SubnetId:
+        Ref: ConsumerVpcPublicSubnet
+      Tags:
+        - Key: Name
+          Value: ConsumerVpcNatGateway
+
+  ConsumerVpcGwyAttachment:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId:
+        Ref: ConsumerVpcNatGateway
+      RouteTableId:
+        Ref: ConsumerVpcPrivateRT
+
+  ConsumerVpcPrivateInstance:
+    Type: AWS::EC2::Instance
+    DependsOn: ConsumerVpcGwyAttachment
+    Properties:
+      InstanceType: !Ref InstanceType
+      ImageId: !Ref LatestAmiId
+      KeyName: !Ref KeyName
+      IamInstanceProfile: !Ref InstanceProfile
+      SubnetId: !Ref ConsumerVpcPrivateSubnet
+      SecurityGroupIds:
+        - !GetAtt ConsumerVpcPrivateSG.GroupId
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            VolumeSize: 8
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-ConsumerVpc-PrivateInstance
+          
+  ConsumerVpcEndpointSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable HTTP access from public & private SG
+      VpcId: !Ref ConsumerVpc
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupId: !GetAtt ConsumerVpcPrivateSG.GroupId
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          SourceSecurityGroupId: !GetAtt ConsumerVpcPrivateSG.GroupId
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-ConsumerVpc-EndpointSG
+
+  ConsumerSsmMessagesVpcEndpoint:
+    Properties:
+      PrivateDnsEnabled: 'true'
+      SecurityGroupIds:
+        - !Ref 'ConsumerVpcEndpointSG'
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.ssmmessages'
+      SubnetIds:
+        - !Ref 'ConsumerVpcPrivateSubnet'
+      VpcEndpointType: Interface
+      VpcId: !Ref 'ConsumerVpc'
+    Type: AWS::EC2::VPCEndpoint
+
+  ConsumerSsmVpcEndpoint:
+    Properties:
+      PrivateDnsEnabled: 'true'
+      SecurityGroupIds:
+        - !Ref 'ConsumerVpcEndpointSG'
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.ssm'
+      SubnetIds:
+        - !Ref 'ConsumerVpcPrivateSubnet'
+      VpcEndpointType: Interface
+      VpcId: !Ref 'ConsumerVpc'
+    Type: AWS::EC2::VPCEndpoint

@@ -1,0 +1,6 @@
+[
+    {"ParameterKey": "KeyName", "ParameterValue": "cloud-eng-test"},
+    {"ParameterKey": "InstanceType", "ParameterValue": "t2.micro"},
+    {"ParameterKey": "AvailabilityZones", "ParameterValue": "us-west-2a,us-west-2b"},
+    {"ParameterKey": "InstanceProfile", "ParameterValue": "VplEC2SsmInstanceProfile"}
+]

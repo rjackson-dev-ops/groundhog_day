@@ -1,0 +1,333 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      -
+        Label:
+          default: "EC2 Configuration"
+        Parameters:
+          - InstanceName
+          - InstanceType
+          - KeyName
+          - LatestAmiId
+          - ImageID
+          - AvailabilityZones
+
+Parameters:
+  InstanceProfile:
+    Default: ec2 instance profile
+    Type: String
+  KeyName:
+    Default: Name of an existing EC2 KeyPair to enable SSH access to the instance
+    Type: 'AWS::EC2::KeyPair::KeyName'
+    ConstraintDescription: must be the name of an existing EC2 KeyPair.
+  LatestAmiId:
+    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+    Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
+  InstanceType:
+    Description: AMZ 2 EC2 Instance Type
+    Type: String
+    Default: t2.large
+    AllowedValues:
+      - t2.nano
+      - t2.micro
+      - t2.small
+      - t2.medium
+      - t2.large
+      - m4.large
+      - m4.xlarge
+      - m4.2xlarge
+      - m4.4xlarge
+      - c4.large
+      - c4.xlarge
+      - c4.2xlarge
+      - c4.4xlarge
+
+  AvailabilityZones:
+    Description: 'List of Availability Zones to use for the subnets in the VPC. Assumes 2 zones'
+    Type: List<AWS::EC2::AvailabilityZone::Name>
+
+Resources:
+  ServiceVpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      EnableDnsHostnames: 'true'
+      EnableDnsSupport: 'true'
+      CidrBlock: 10.100.0.0/16
+      Tags:
+        - Key: Name
+
+          Value:  !Sub ${AWS::StackName}-ServiceVpc
+
+  ServiceVpcPublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref ServiceVpc
+      AvailabilityZone: !Select [1, !Ref AvailabilityZones]
+      CidrBlock: 10.100.1.0/24
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-ServiceVpc-PublicSubnet
+
+  ServiceVpcPrivateSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref ServiceVpc
+      AvailabilityZone: !Select [1, !Ref AvailabilityZones]
+      CidrBlock: 10.100.2.0/24
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-ServiceVpc-PrivateSubnet
+
+  ServiceVpcPrivateRT:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref ServiceVpc
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-ServiceVpc-PrivateRT
+
+  ServiceVpcPublicRT:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref ServiceVpc
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-ServiceVpc-PublicRT
+
+
+  # ServiceVpcPrivateRoute:
+  #   Type: AWS::EC2::Route
+  #   DependsOn: ServiceVpcAttachGateway
+  #   Properties:
+  #     DestinationCidrBlock: 0.0.0.0/0
+  #     RouteTableId: !Ref ServiceVpcPrivateRT
+  #     GatewayId: !Ref ServiceVpcInternetGateway
+
+  ServiceVpcPrivateSubnetRtAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref ServiceVpcPrivateSubnet
+      RouteTableId: !Ref ServiceVpcPrivateRT
+
+
+  ServiceVpcPublicSubnetRtAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref ServiceVpcPublicSubnet
+      RouteTableId: !Ref ServiceVpcPublicRT
+
+  ServiceVpcPrivateSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Service Security Group
+      VpcId: !Ref ServiceVpc
+      SecurityGroupIngress:
+      - IpProtocol: tcp   
+        FromPort: '80'
+        ToPort: '80'
+        CidrIp: 10.100.0.0/16
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-ServicePrivateVpc-SG
+
+  ServiceVpcIgw:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: ServiceVpcIgw
+
+  ServerVpcIgwAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId:
+        Ref: ServiceVpc
+      InternetGatewayId:
+        Ref: ServiceVpcIgw
+
+  ServiceVpcRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId:
+        Ref: ServiceVpcIgw
+      RouteTableId:
+        Ref: ServiceVpcPublicRT
+
+  ServiceVpcNatEip:
+    Type: "AWS::EC2::EIP"
+    Properties:
+      Domain: vpc
+
+  ServiceVpcNatGateway:
+    DependsOn: ServerVpcIgwAttachment
+    Type: "AWS::EC2::NatGateway"
+    Properties:
+      AllocationId:
+        Fn::GetAtt:
+          - ServiceVpcNatEip
+          - AllocationId
+      SubnetId:
+        Ref: ServiceVpcPublicSubnet
+      Tags:
+        - Key: Name
+          Value: ServiceVpcNatGateway
+
+  ServiceVpcGwyAttachment:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId:
+        Ref: ServiceVpcNatGateway
+      RouteTableId:
+        Ref: ServiceVpcPrivateRT
+          
+  ServiceVpcWebServer:
+    DependsOn: ServiceVpcNatGateway
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceType
+      ImageId: !Ref LatestAmiId
+      KeyName: !Ref KeyName
+      IamInstanceProfile: !Ref InstanceProfile
+      UserData:
+        Fn::Base64:
+          !Sub |
+          #!/usr/bin/env bash
+          sudo yum install httpd -y
+          sudo service httpd start
+          sudo echo "<h1>WebServer $(curl -s http://169.254.169.254/latest/meta-data/local-ipv4)</h1>" > /var/www/html/index.html
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: false
+          DeviceIndex: 0
+          SubnetId: !Ref ServiceVpcPrivateSubnet
+          GroupSet:
+            - !GetAtt ServiceVpcPrivateSG.GroupId
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            VolumeSize: 8
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-ServiceVpc-WebServer
+
+  NLB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Sub ${AWS::StackName}-ServiceVpc-NLB
+      Scheme: internal
+      Type: network
+      Subnets:
+        - !Ref ServiceVpcPrivateSubnet
+  TG:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      VpcId: !Ref ServiceVpc
+      TargetType: instance
+      Port: 80
+      Protocol: TCP
+      Targets:
+        - Id: !Ref ServiceVpcWebServer
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-ServiceVpc-TG
+  TcpListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref TG
+      LoadBalancerArn: !Ref NLB
+      Port: 80
+      Protocol: TCP
+
+  ServiceVpcPrivateLink:
+    Type: AWS::EC2::VPCEndpointService
+    Properties:
+      AcceptanceRequired: true # if you don't set it or set to true, you have to manually accept endpoint requests
+      NetworkLoadBalancerArns:
+        - !Ref NLB
+
+  ServiceVpcEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcEndpointType: Interface
+      ServiceName: !Sub com.amazonaws.vpce.${AWS::Region}.${ServiceVpcPrivateLink}
+      VpcId: !Ref ServiceVpc
+      SubnetIds:
+        - !Ref ServiceVpcPrivateSubnet
+      SecurityGroupIds:
+        - !GetAtt ServiceVpcEndpointSG.GroupId
+        
+  ServiceVpcEndpointSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable HTTP access from private SG
+      VpcId: !Ref ServiceVpc
+      SecurityGroupIngress:
+      - IpProtocol: tcp   
+        FromPort: '80'
+        ToPort: '80'
+        CidrIp: !GetAtt ServiceVpc.CidrBlock
+      - IpProtocol: tcp   
+        FromPort: '22'
+        ToPort: '22'
+        CidrIp: !GetAtt ServiceVpc.CidrBlock
+      - IpProtocol: tcp   
+        FromPort: '443'
+        ToPort: '443'
+        CidrIp: !GetAtt ServiceVpc.CidrBlock
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-ServiceVpc-EndpointSG
+
+  ServiceSsmMessagesVpcEndpoint:
+    Properties:
+      PrivateDnsEnabled: 'true'
+      SecurityGroupIds:
+        - !Ref 'ServiceVpcSsmEndpointSecurityGroup'
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.ssmmessages'
+      SubnetIds:
+        - !Ref 'ServiceVpcPrivateSubnet'
+      VpcEndpointType: Interface
+      VpcId: !Ref 'ServiceVpc'
+    Type: AWS::EC2::VPCEndpoint
+
+  ServiceSsmVpcEndpoint:
+    Properties:
+      PrivateDnsEnabled: 'true'
+      SecurityGroupIds:
+        - !Ref 'ServiceVpcSsmEndpointSecurityGroup'
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.ssm'
+      SubnetIds:
+        - !Ref 'ServiceVpcPrivateSubnet'
+      VpcEndpointType: Interface
+      VpcId: !Ref 'ServiceVpc'
+    Type: AWS::EC2::VPCEndpoint
+
+  ServiceVpcSsmEndpointSecurityGroup:
+    Properties:
+      GroupDescription: Security Group for utilizing Vpc Endpoints
+      SecurityGroupEgress:
+        - SourceSecurityGroupId: !GetAtt ServiceVpcPrivateSG.GroupId
+          IpProtocol: '-1'
+      SecurityGroupIngress:
+        - SourceSecurityGroupId: !GetAtt ServiceVpcPrivateSG.GroupId
+          FromPort: 80
+          IpProtocol: tcp
+          ToPort: 80
+        - SourceSecurityGroupId: !GetAtt ServiceVpcPrivateSG.GroupId
+          FromPort: 22
+          IpProtocol: tcp
+          ToPort: 22
+        - SourceSecurityGroupId: !GetAtt ServiceVpcPrivateSG.GroupId
+          FromPort: 443
+          IpProtocol: tcp
+          ToPort: 443
+      VpcId: !Ref ServiceVpc
+      Tags:
+      - Key: Name
+        Value: !Sub ${AWS::StackName}-ServiceVpcSsmSG
+    Type: AWS::EC2::SecurityGroup

@@ -1,0 +1,33 @@
+Resources:
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles: [ !Ref InstanceRole ]
+      InstanceProfileName: VplEC2SsmInstanceProfile
+  InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: [ ec2.amazonaws.com ]
+            Action:
+              - sts:AssumeRole
+      Path: /
+      RoleName: VplEc2SsmRole
+
+Outputs:
+  InstanceProfleName:
+    Description: Instance Profile Name
+    Value: !Ref InstanceProfile
+    Export:
+      Name: InstanceProfileName
+  InstanceProfleArn:
+    Description: Instance Profile ARN
+    Value: !GetAtt InstanceProfile.Arn
+    Export:
+      Name: InstanceProfileARN
