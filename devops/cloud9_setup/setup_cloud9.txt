@@ -1,4 +1,7 @@
 # find subnet
+aws  ec2 describe-subnets \
+  --query "Subnets[].{VpcId:VpcId,CidrBlock:CidrBlock,State:State,AvailabilityZone:AvailabilityZone,SubnetId:SubnetId,AvailableIpAddressCount:AvailableIpAddressCount,Tags:Tags}"
+
 awv  ec2 describe-subnets \
   --query "Subnets[].{VpcId:VpcId,CidrBlock:CidrBlock,State:State,AvailabilityZone:AvailabilityZone,SubnetId:SubnetId,AvailableIpAddressCount:AvailableIpAddressCount,Tags:Tags}"
 
@@ -60,4 +63,23 @@ awve get_instances.sh  | less
 
 awv cloud9 delete-environment --environment-id
 
+
+# Add key to authorized users
+
+## ssh into instances
+
+## Create bucket to store creds
+
+aws s3 mb s3://rjack-credentials
+
+
+aws s3api put-bucket-encryption --bucket rjack-credentials --server-side-encryption-configuration '{
+    "Rules": [
+        {
+            "ApplyServerSideEncryptionByDefault": {
+                "SSEAlgorithm": "AES256"
+            }
+        }
+    ]
+}'
 
