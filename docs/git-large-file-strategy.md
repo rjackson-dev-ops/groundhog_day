@@ -58,8 +58,10 @@ find . -xdev -type f -size +1M
 ```
 
 git lfs track "*.pdf"
+git lfs track "*.ipynb"
 git lfs track "*.mp3"
 git lfs migrate import --include="*.pdf"
+git lfs migrate import --include="*.ipynb"
 
 ```
 
